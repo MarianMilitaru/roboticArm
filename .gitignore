@@ -39,3 +39,9 @@
 
 # debug information files
 *.dwo
+
+# PCB unnecessary files
+*.lck
+*.bak
+*.kicad_prl
+*.kicad_pro
