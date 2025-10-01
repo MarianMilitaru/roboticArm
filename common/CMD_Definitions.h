@@ -8,14 +8,13 @@
 
 // Requests
 #define REQANGLE 0b00000001 // DONE
-#define REQSTATUS 0b00000010 // On developement
+#define REQSTATUS 0b00000010 // DONE
 #define REQCHECK 0b00000011 // On developement
 
 // Settings
 #define ANGLE 0b00010000 // DONE
 //#define SPEED 0b00100000
-#define STEPS 0b00110000 // On developement
-#define DIR 0b01000000 // On developement
+#define DIR 0b01000000 // DONE
 
 // Commands
 #define ESTOP 0b11111111 // On developement

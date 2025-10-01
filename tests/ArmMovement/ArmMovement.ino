@@ -2,15 +2,14 @@
 #define STEPPIN 9
 #define ENABLEPIN 8
 #define ANGLEPIN A0
-#define time 2000/16
 
-// Calculating angle scaling for faster computing
 constexpr float SCALE = 120.0f / 4095.0f;
 
-float smoothSignal(float);
+float previousAngle = 0.0f;
 
-float previousAngle = 0;
-int lastStep = -1;
+float smoothSignal (float pin) {
+  return ((analogRead(pin) + analogRead(pin) + analogRead(pin)) * SCALE);
+}
 
 void setup() {
 
@@ -24,25 +23,20 @@ void setup() {
   pinMode (ENABLEPIN, OUTPUT);
   analogReadResolution(12);
   digitalWrite(DIRPIN, LOW);    // counterclockwise
-
-}
-
-float smoothSignal (float pin) {
-  return ((analogRead(pin) + analogRead(pin) + analogRead(pin)) * SCALE);
 }
 
 void loop() {
+  // put your main code here, to run repeatedly:
   float currentAngle = smoothSignal(ANGLEPIN);
-
-  int step = (int)(currentAngle / 10.0f) * 10;
-  if (step == 360) {step = 0;}
-  if (step != lastStep) {
-    Serial.println(currentAngle);
-    lastStep = step;
+  Serial.println(currentAngle);
+  if (currentAngle <= 30) {
+    digitalWrite(DIRPIN, HIGH);
+  } else if (currentAngle >= 320) {
+    digitalWrite(DIRPIN, LOW);
   }
-  
   digitalWrite(STEPPIN, HIGH);
-  delayMicroseconds(time);
+  delayMicroseconds(300);
   digitalWrite(STEPPIN, LOW);
-  delayMicroseconds(time);
+  delayMicroseconds(300);
+
 }

@@ -8,6 +8,7 @@ constexpr float SCALE = 120.0f / 4095.0f;
 
 uint8_t currentCommand;
 uint8_t status;
+uint8_t direction;
 float currentAngle;
 float targetAngle;
 
@@ -45,60 +46,59 @@ void setup() {
 * @param bytes Holds the number of bytes going to be recieved
 */
 void receiveEvent(int bytes) {
-  if(Wire.available() == sizeof(uint8_t)) {
-    currentCommand = Wire.read();
-  }
+
+  if (bytes < 1) return; // return if there is not one byte sent
+
+  currentCommand = Wire.read(); // first byte = command
+
   switch (currentCommand) {
-  case ANGLE: {
-    if(Wire.available() == sizeof(float)) {
-      Wire.readBytes((uint8_t*)&targetAngle, sizeof(targetAngle));
+    case ANGLE: {
+      // 5 bytes sent in total
+      // byte 1: command
+      // byte 2-5: angle
+      if(bytes >= 1 + sizeof(float)) {
+        Wire.readBytes((uint8_t*)&targetAngle, sizeof(targetAngle));
+      }
+      status = NOTREADY;
+      currentCommand = 0b00000000;
+      break;
     }
-    break;
-  }
-  default:
-    break;
+    case DIR: {
+      // 2 bytes sent in total
+      // byte 1: command
+      // byte 2: direction
+      if (bytes >= 1 + sizeof(uint8_t)) {
+        Wire.readBytes((uint8_t*)&direction, sizeof(direction));
+      }
+      currentCommand = 0b00000000;
+      break;
+    }
+    default: break;
   }
 }
 
 void requestEvent(void) {
   switch (currentCommand) {
     case REQANGLE: {
+      currentAngle = smoothSignal(ANGLEPIN);
       Wire.write((uint8_t*)&currentAngle, sizeof(currentAngle));
       currentCommand = 0b00000000;
       break;
     }
-    case REQSTATUS: break;
+    case REQSTATUS: {
+      Wire.write((uint8_t*)&status, sizeof(status));
+      currentCommand = 0b00000000;
+      break;
+    }
     default: break;
   }
 }
 
 
 void loop() {
-
-  // Doing the requested computation in the loop 
-  // so the response to the master can be almost 
-  // instant when interogated
-  switch (currentCommand) {
-    case ESTOP: {
-      digitalWrite(ENABLEPIN, HIGH);
-      break;
-    }
-    case FULLSTEP: break;
-    case HALFSTEP: break;
-    case QUARTEDSTEP: break;
-    case EIGHTHSTEP: break;
-    case SIXTEENTHSTEP: break;
-    case REQANGLE: {
-      currentAngle = smoothSignal(ANGLEPIN);
-      break;
-    }
-    case ANGLE: {
-      moveMotor();
-      currentCommand = 0b00000000;
-      break;
-    }
-    default:
-      break;
+  float error = targetAngle - currentAngle;
+  if (abs(error) < 2.0f) {
+    moveMotor();
   }
 } 
 
@@ -136,4 +136,5 @@ void moveMotor(float tolerance, uint8_t maxCorrections) {
     // Update feedback
     error = smoothSignal(ANGLEPIN) - targetAngle;
   }
+  status = READY;
 }
