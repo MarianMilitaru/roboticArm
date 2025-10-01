@@ -19,6 +19,7 @@ arduino::MbedI2C Wire1(2, 3);
 bool sendCommand (uint8_t, uint8_t);
 bool reqData (uint8_t, uint8_t);
 bool sendData (uint8_t, uint8_t, float);
+bool sendData (uint8_t, uint8_t, uint8_t);
 
 void setup() {
 
@@ -105,30 +106,33 @@ bool reqData (uint8_t address, uint8_t request) {
 }
 
 bool sendData (uint8_t address, uint8_t setting, float data) {
-  if (sendCommand(address, setting)) {
-    switch (setting) {
-      case ANGLE: {
-        Wire1.beginTransmission(address);
-        Wire1.write((uint8_t*)&data, sizeof(float));
-        if ((Wire1.endTransmission() == 0)) {
-          return true;
-        }
+  switch (setting) {
+    case ANGLE: {
+      Wire1.beginTransmission(address);
+      Wire1.write(setting);
+      Wire1.write((uint8_t*)&data, sizeof(float));
+      if ((Wire1.endTransmission() == 0)) {
+        return true;
       }
-      case STEPS: {
-
-        break;
-      }
-      case DIR: {
-
-        break;
-      }
-      default: break;
+      break;
     }
-    return false;
-  } else {
-    Serial.print("slave at ");
-    Serial.print(address, HEX);
-    Serial.println(" not responding!");
-    return false;
+    default: break;
   }
+  return false;
+}
+
+bool sendData (uint8_t address, uint8_t setting, uint8_t data) {
+  switch (setting) {
+  case DIR: {
+      Wire1.beginTransmission(address);
+      Wire1.write(setting);
+      Wire1.write((uint8_t*)&data, sizeof(uint8_t));
+      if ((Wire1.endTransmission() == 0)) {
+        return true;
+      }
+      break;
+    }
+    default: break;
+  }
+  return false;
 }
