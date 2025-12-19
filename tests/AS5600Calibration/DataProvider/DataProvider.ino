@@ -64,7 +64,7 @@ void loop() {
 
 void moveMotor(float tolerance, uint8_t maxCorrections) {
 
-  float targetAngle = 5.0f;
+  float targetAngle = 360.0f;
 
   // Stop counter
   uint8_t corrections = 0;
